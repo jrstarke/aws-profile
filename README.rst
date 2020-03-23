@@ -26,14 +26,13 @@ There are two primary ways to use **aws-profile**, inline using arguments and wi
 
 **Inline Profile Name**
 
-`aws-profile [-p, --profile <profile name>] <command>`
+`aws-profile [-p, --profile <profile name> -r, --region <region>] <command>`
 
 **Profile Environment Variable**
 
-`AWS_DEFAULT_PROFILE='<profile>' aws-profile <command>`
-
-`AWS_PROFILE='<profile>' aws-profile <command>`
-
+`aws-profile --profile dev --region us-west-2 <command>`
+or
+`aws-profile -p dev -r us-west-2 <command>`
 
 Options
 -------

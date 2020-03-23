@@ -41,8 +41,15 @@ def configure_cache(session):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--profile", help="set the AWS profile to use, this would override AWS environment variables",
-                        required=False, default=None)
+    parser.add_argument("-p", "--profile",
+                        help="set the AWS profile to use, this would override AWS environment variables",
+                        required=False,
+                        default=None)
+    parser.add_argument("-r", "--region",
+                        help="set the AWS region to use, this would override AWS environment variables",
+                        required=False,
+                        default=None)
+
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
@@ -56,11 +63,11 @@ def parse_args():
     if not args.command:
         parser.print_help()
         sys.exit(1)
-    return (args.profile, args.command, cache)
+    return (args.profile, args.region, args.command, cache)
 
 
 def main():
-    profile, command, cache = parse_args()
+    profile, region, command, cache = parse_args()
     session = botocore.session.Session(profile=profile)
     if cache == 'true':
         configure_cache(session)
@@ -72,7 +79,11 @@ def main():
     os.unsetenv('AWS_SECRET_ACCESS_KEY')
     os.unsetenv('AWS_SESSION_TOKEN')
 
-    region = config.get('region', None)
+    region = region if region is not None else config.get('region', None)
+
+    if profile:
+        os.putenv('AWS_PROFILE', profile)
+
     if region:
         os.putenv('AWS_DEFAULT_REGION', region)
         os.putenv('AWS_REGION', region)

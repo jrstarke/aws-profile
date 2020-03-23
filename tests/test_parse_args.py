@@ -24,23 +24,25 @@ def test_empty_command_prints_help(command_line, capsys, mocker):
     assert out.startswith('usage')
 
 
-@pytest.mark.parametrize("command_line,expected_profile,expected_commands",
-                         [("aws-profile command", None, ["command"]),
-                          ("aws-profile command -a argument", None, ["command", "-a", "argument"]),
-                          ("aws-profile -p test-profile-name command", 'test-profile-name', ["command"]),
-                          ("aws-profile -p test-profile-name command -a argument", 'test-profile-name',
+@pytest.mark.parametrize("command_line,expected_profile,expected_region,expected_commands",
+                         [("aws-profile command", None, None, ["command"]),
+                          ("aws-profile command -a argument", None, None, ["command", "-a", "argument"]),
+                          ("aws-profile -p test-profile-name command", 'test-profile-name', None, ["command"]),
+                          ("aws-profile -p test-profile-name command -a argument", 'test-profile-name', None,
                            ["command", "-a", "argument"]),
-                          ("aws-profile --profile long-test-profile-name command", 'long-test-profile-name',
+                          ("aws-profile --profile long-test-profile-name command", 'long-test-profile-name', None,
                            ["command"]),
                           (
                                   "aws-profile --profile long-test-profile-name command -a argument",
-                                  'long-test-profile-name', ["command", "-a", "argument"])]
+                                  'long-test-profile-name', None, ["command", "-a", "argument"]),
+                          ("aws-profile -p test-profile-name -r test-region command", 'test-profile-name', "test-region", ["command"])
+                          ]
                          )
-def test_profile_is_set_as_expected(command_line, expected_profile, expected_commands, mocker):
+def test_profile_is_set_as_expected(command_line, expected_profile, expected_region, expected_commands, mocker):
     """It should return the correct value for the profile, the option from the command line if present or None"""
     mocker.patch('sys.argv', command_line.split(' '))
     result = parse_args()
-    assert (expected_profile, expected_commands, 'true') == result
+    assert (expected_profile, expected_region, expected_commands, 'true') == result
 
 
 @pytest.mark.parametrize("envvar,expected", [
@@ -59,4 +61,4 @@ def test_cache_envar_set_to_anything_other_than_false_or_FALSE(envvar, expected,
     mocker.patch('sys.argv', ['aws-profile', 'test-command-name'])
     os.environ['AWS_CACHE'] = envvar
     result = parse_args()
-    assert (None, ['test-command-name'], expected) == result
+    assert (None, None, ['test-command-name'], expected) == result
