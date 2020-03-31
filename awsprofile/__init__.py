@@ -16,6 +16,8 @@ import botocore.session
 
 from awscli.utils import json_encoder
 from awscli.customizations.assumerole import JSONFileCache
+
+
 # JSONFileCache from awscli does not serialize datetime, add json_encoder support
 class FixedJSONFileCache(JSONFileCache):
     def __setitem__(self, cache_key, value):
@@ -31,6 +33,7 @@ class FixedJSONFileCache(JSONFileCache):
                                os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
             f.truncate()
             f.write(file_content)
+
 
 def configure_cache(session):
     """ Injects caching to the session's credential provider """
@@ -53,7 +56,7 @@ def parse_args():
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
-    cache = os.getenv('AWS_CACHE','true')
+    cache = os.getenv('AWS_CACHE', 'true')
 
     if cache.lower() != 'false':
         cache = 'true'
@@ -63,7 +66,7 @@ def parse_args():
     if not args.command:
         parser.print_help()
         sys.exit(1)
-    return (args.profile, args.region, args.command, cache)
+    return args.profile, args.region, args.command, cache
 
 
 def main():
@@ -75,9 +78,9 @@ def main():
     creds = session.get_credentials()
 
     # Unset variables for sanity sake
-    os.unsetenv('AWS_ACCESS_KEY_ID')
-    os.unsetenv('AWS_SECRET_ACCESS_KEY')
-    os.unsetenv('AWS_SESSION_TOKEN')
+    os.environ.pop('AWS_ACCESS_KEY_ID', None)
+    os.environ.pop('AWS_SECRET_ACCESS_KEY', None)
+    os.environ.pop('AWS_SESSION_TOKEN', None)
 
     region = region if region is not None else config.get('region', None)
 
@@ -96,12 +99,12 @@ def main():
         else:
             os.putenv('AWS_SESSION_TOKEN', creds.token)
 
-
-    returncode = subprocess.call(
+    return_code = subprocess.call(
         command, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr
     )
 
-    exit(sys.exit(returncode))
+    exit(sys.exit(return_code))
+
 
 if __name__ == '__main__':
     main()
